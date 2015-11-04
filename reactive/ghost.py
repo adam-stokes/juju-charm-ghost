@@ -1,3 +1,4 @@
+import sys
 from charms.reactive import (
     when,
     set_state
@@ -17,6 +18,7 @@ from ghostlib import download_archive
 # REACTORS --------------------------------------------------------------------
 @when('nginx.available')
 def install_nodejs():
+    hookenv.log("Python version: {}".format(sys.version_info), 'debug')
     config = hookenv.config()
 
     hookenv.log('Installing Node.js {} for Ghost'.format(

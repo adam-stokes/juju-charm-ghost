@@ -1,6 +1,26 @@
 # layer-ghost
 > Ghost layer for Juju
 
+# usage
+
+```
+$ juju deploy cs:~adam-stokes/ghost
+```
+
+# config
+
+```yaml
+options:
+  ghost-release:
+    type: string
+    default: "0.7.1"
+    description: "Release version of Ghost"
+  node-version:
+    type: string
+    default: "0.10"
+    description: Supported Node.js version for Ghost
+```
+
 # license
 
 The MIT License (MIT)

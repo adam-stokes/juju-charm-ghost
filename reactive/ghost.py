@@ -1,41 +1,59 @@
 import sys
 from charms.reactive import (
+    hook,
     when,
-    set_state
+    is_state,
+    set_state,
+    remove_state
 )
 
-from charms.reactive.decorators import when_file_changed
 from charmhelpers.core import hookenv, host
 from charmhelpers.core.templating import render
 
 # ./lib/nodejs.py
-from nodejs import node_dist_dir, npm
+from nodejs import node_dist_dir, npm, node_switch
 
 # ./lib/ghostlib.py
 from ghostlib import download_archive
 
+config = hookenv.config()
 
-# REACTORS --------------------------------------------------------------------
-@when('nginx.available')
-def install_nodejs():
+
+@hook('install')
+def install():
     hookenv.log("Python version: {}".format(sys.version_info), 'debug')
-    config = hookenv.config()
 
-    hookenv.log('Installing Node.js {} for Ghost'.format(
-        config['node-version']))
+    if not is_state('nodejs.installed'):
+        hookenv.log('Installing Node.js {} for Ghost'.format(
+            config['node-version']))
+        node_switch(config['node-version'])
+    set_state('nginx.install')
 
-    set_state('nodejs.install_runtime')
+
+@hook('config-changed')
+def config_changed():
+    hookenv.log('Previous Ghost Release: {} Changed: {}'.format(
+        config.previous('ghost-release'),
+        config.changed('ghost-release')))
 
 
-@when('nodejs.installed')
+@hook('start')
+def start():
+    hookenv.status_set('maintenance', 'Starting Ghost')
+    host.service_restart('ghost')
+    host.service_restart('nginx')
+    hookenv.status_set('active', 'ready')
+
+
+@when('nginx.available', 'nodejs.installed')
 def app_install():
     """ Performs application installation
     """
+    remove_state('nodejs.installed')
+
     # Update application
     download_archive()
     npm('install --production')
-
-    hookenv.status_set('maintenance', 'Starting Ghost')
 
     # Render upstart job
     ctx = {
@@ -44,12 +62,3 @@ def app_install():
     render(source='ghost-upstart.conf',
            target='/etc/init/ghost.conf',
            context=ctx)
-
-    hookenv.status_set('active', 'ready')
-    set_state('nginx.start')
-
-
-@when_file_changed('/etc/init/ghost.conf')
-def restart():
-    hookenv.status_set('maintenance', 'Restarting Ghost')
-    host.service_restart('ghost')

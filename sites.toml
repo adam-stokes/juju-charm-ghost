@@ -1,0 +1,5 @@
+[default]
+# Only a single vhost, dont define servername
+servername = "_"
+location = "/"
+proxy_port = 2368

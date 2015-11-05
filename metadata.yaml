@@ -9,3 +9,6 @@ description: |
 
   Ghost is a simple, powerful publishing platform that allows you to share your
   stories with the world.
+requires:
+  database:
+    interface: mysql

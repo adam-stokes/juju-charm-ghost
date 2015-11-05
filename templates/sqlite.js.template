@@ -1,0 +1,10 @@
+/* -*- mode:js2; -*- */
+module.exports = {
+  database: {
+    client: 'sqlite3',
+      connection: {
+        filename: '{{ dist_dir }}/content/data/ghost-juju.db'
+      },
+      debug: false
+  }
+}

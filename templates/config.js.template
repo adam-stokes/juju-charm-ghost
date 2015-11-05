@@ -1,0 +1,27 @@
+/* -*- mode:js2; -*- */
+
+var db = require('./dbconfig').database;
+
+module.exports = {
+  production: {
+    url: '{{url}}',
+    database: db,
+    server: {
+      host: '{{host}}',
+      port: '{{port}}'
+    },
+    mail: {
+      {{from_address}}
+      {{amazon_ses_host}}
+      transport: 'SMTP',
+      options: {
+        service: '{{mail_service}}',
+        {{amazon_ses_port}}
+        auth: {
+          user: '{{mailserver_username}}',
+          pass: '{{mailserver_password}}'
+        }
+      }
+    }
+  }
+};

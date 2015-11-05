@@ -1,0 +1,13 @@
+/* -*- mode:js2; -*- */
+module.exports = {
+  database: {
+    client: 'mysql',
+    connection: {
+      host: '{{ db.host() }}',
+      user: '{{ db.user() }}',
+      password: '{{ db.password() }}',
+      database: '{{ db.database() }}',
+      charset: 'utf8'
+    }
+  },
+}

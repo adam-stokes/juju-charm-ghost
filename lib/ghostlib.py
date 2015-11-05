@@ -32,7 +32,7 @@ def download_archive():
                 'blocked',
                 'Downloaded Ghost checksums do not match, '
                 'possible corrupt file!')
-            sys.exit(1)
+            sys.exit(0)
 
     if path.isdir(node_dist_dir()):
         rmtree(node_dist_dir())

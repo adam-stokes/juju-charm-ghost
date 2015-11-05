@@ -22,7 +22,7 @@ config = hookenv.config()
 @hook('config-changed')
 def config_changed():
 
-    if not is_state('nginx.available') or not is_state('nodejs.installed'):
+    if not is_state('nginx.available') or not is_state('nodejs.available'):
         return
 
     # Update config on any config items altered
@@ -32,6 +32,7 @@ def config_changed():
         render(source='config.js.template',
                target=target,
                context=config)
+        host.service_restart('ghost')
 
     if config.changed('port'):
         host.service_stop('ghost')
@@ -41,8 +42,8 @@ def config_changed():
         ))
         hookenv.close_port(config.previous('port'))
         hookenv.open_port(config['port'])
+        host.service_restart('ghost')
 
-    host.service_start('ghost')
     host.service_restart('nginx')
 
 
@@ -79,6 +80,8 @@ def install():
            context=ctx,
            perms=0o644)
     hookenv.status_set('active', 'Ghost is installed, start blogging!')
+    host.service_start('ghost')
+    host.service_restart('nginx')
 
 
 @when('nginx.available', 'database.available')

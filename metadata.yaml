@@ -1,14 +1,8 @@
 name: ghost
 summary: |
-  Ghost is a simple, powerful publishing platform that allows you to share your
-  stories with the world.
+  Ghost is a simple, powerful publishing platform.
 maintainers: ['Adam Stokes <adam.stokes@ubuntu.com>']
-tags: ['nodejs', 'javascript', 'blog']
-description: |
-  Just a blogging platform
-
-  Ghost is a simple, powerful publishing platform that allows you to share your
-  stories with the world.
+categories: ['nodejs', 'javascript', 'blog']
 requires:
   database:
     interface: mysql

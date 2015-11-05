@@ -2,16 +2,14 @@ import os
 from charms.reactive import (
     hook,
     when,
-    is_state,
-    set_state,
-    remove_state
+    is_state
 )
 
 from charmhelpers.core import hookenv, host
 from charmhelpers.core.templating import render
 
 # ./lib/nodejs.py
-from nodejs import node_dist_dir, npm, node_switch
+from nodejs import node_dist_dir, npm
 
 # ./lib/ghostlib.py
 from ghostlib import download_archive
@@ -20,20 +18,11 @@ config = hookenv.config()
 
 
 # HOOKS -----------------------------------------------------------------------
-@hook('install')
-def install():
-    # Install Node.js
-    if not is_state('nodejs.installed'):
-        hookenv.log('Installing Node.js {} for Ghost'.format(
-            config['node-version']))
-        node_switch(config['node-version'])
-
-    # Node.js installed, Install NGINX
-    set_state('nginx.install')
-
-
 @hook('config-changed')
 def config_changed():
+
+    if not is_state('nginx.available') or not is_state('nodejs.installed'):
+        return
 
     # Update config on any config items altered
     if any(config.changed(k) for k in config.keys()):
@@ -56,34 +45,9 @@ def config_changed():
     host.service_restart('nginx')
 
 
-@hook('start')
-def start():
-    hookenv.status_set('maintenance', 'Starting Ghost')
-    host.service_start('ghost')
-    host.service_restart('nginx')
-    hookenv.status_set('active', 'ready')
-
-
 # REACTORS --------------------------------------------------------------------
-@when('nginx.available', 'database.available')
-def setup_mysql(mysql):
-    """ Mysql is available, update Ghost db configuration
-    """
-    host.service_stop('ghost')
-
-    hookenv.status_set('maintenance', 'Connecting Ghost to MySQL!')
-    target = os.path.join(node_dist_dir(), 'dbconfig.js')
-    render(source='mysql.js.template',
-           target=target,
-           context=dict(db=mysql))
-
-    host.service_start('ghost')
-    host.service_restart('nginx')
-    hookenv.status_set('active', 'ready')
-
-
 @when('nginx.available', 'nodejs.installed')
-def app_install():
+def install():
     """ Performs application installation
 
     This method becomes available once Node.js and NGINX have been
@@ -91,9 +55,7 @@ def app_install():
     available (nginx.available, nodejs.installed) which we react on.
     """
 
-    # Make sure this state doesn't re-trigger an install loop
-    # TODO: Maybe I'm doing it wrong?
-    remove_state('nodejs.installed')
+    hookenv.log('Installing Ghost', 'info')
 
     # Update application
     download_archive()
@@ -114,6 +76,22 @@ def app_install():
            target='/etc/init/ghost.conf',
            context=ctx,
            perms=0o644)
+    hookenv.status_set('active', 'Ghost is installed, start blogging!')
+
+
+@when('nginx.available', 'database.available')
+def setup_mysql(mysql):
+    """ Mysql is available, update Ghost db configuration
+    """
+    host.service_stop('ghost')
+    target = os.path.join(node_dist_dir(), 'dbconfig.js')
+    render(source='mysql.js.template',
+           target=target,
+           context=dict(db=mysql))
+
+    host.service_start('ghost')
+    host.service_restart('nginx')
+    hookenv.status_set('active', 'Ghost is connected to MySQL!')
 
 
 @when('nginx.available', 'website.available')

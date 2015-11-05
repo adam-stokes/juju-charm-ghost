@@ -1,1 +1,1 @@
-includes: ['layer:basic', 'layer:nodejs', 'layer:nginx', 'interface:mysql']
+includes: ['layer:basic', 'layer:layers/nodejs', 'layer:layers/nginx', 'interface:mysql']

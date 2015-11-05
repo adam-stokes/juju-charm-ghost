@@ -2,7 +2,11 @@ options:
   release:
     type: string
     default: "0.7.1"
-    description: "Release version of Ghost"
+    description: "Released version of Ghost"
+  checksum:
+    type: string
+    default: "aeae4b83553633df4ef3fe6bd97479b6082e3e6f752a263b61957cca3a365e10"
+    description: "Ghost sha256 checksum"
   node-version:
     type: string
     default: "0.10"

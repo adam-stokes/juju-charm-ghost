@@ -1,4 +1,5 @@
 import os
+import sys
 from charms.reactive import (
     hook,
     when,
@@ -25,6 +26,15 @@ def config_changed():
     if not is_state('nginx.available') or not is_state('nodejs.available'):
         return
 
+    if config.changed('node-version') and config['node-version'] != "0.10":
+        hookenv.status_set('blocked',
+                           'Ghost has only been tested on Node.js v0.10, '
+                           'please update your node-version config '
+                           'to "node-version=0.10".')
+        sys.exit(0)
+    else:
+        hookenv.status_set('active', 'ready')
+
     # Update config on any config items altered
     if any(config.changed(k) for k in config.keys()):
         host.service_stop('ghost')
@@ -50,7 +60,7 @@ def config_changed():
 # REACTORS --------------------------------------------------------------------
 @when('nginx.available', 'nodejs.available')
 @only_once
-def install():
+def install_app():
     """ Performs application installation
 
     This method becomes available once Node.js and NGINX have been

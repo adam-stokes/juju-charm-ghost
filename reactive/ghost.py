@@ -1,4 +1,3 @@
-import sys
 import os
 from charms.reactive import (
     hook,
@@ -23,31 +22,35 @@ config = hookenv.config()
 # HOOKS -----------------------------------------------------------------------
 @hook('install')
 def install():
-    hookenv.log("Python version: {}".format(sys.version_info), 'debug')
-
+    # Install Node.js
     if not is_state('nodejs.installed'):
         hookenv.log('Installing Node.js {} for Ghost'.format(
             config['node-version']))
         node_switch(config['node-version'])
+
+    # Node.js installed, Install NGINX
     set_state('nginx.install')
 
 
 @hook('config-changed')
 def config_changed():
-    host.service_stop('ghost')
+
+    # Update config on any config items altered
+    if any(config.changed(k) for k in config.keys()):
+        host.service_stop('ghost')
+        target = os.path.join(node_dist_dir(), 'config.js')
+        render(source='config.js.template',
+               target=target,
+               context=config)
 
     if config.changed('port'):
+        host.service_stop('ghost')
         hookenv.log('Changing ports: {} -> {}'.format(
             config.previous('port'),
             config['port']
         ))
         hookenv.close_port(config.previous('port'))
         hookenv.open_port(config['port'])
-
-    target = os.path.join(node_dist_dir(), 'config.js')
-    render(source='config.js.template',
-           target=target,
-           context=config)
 
     host.service_start('ghost')
     host.service_restart('nginx')
@@ -56,7 +59,7 @@ def config_changed():
 @hook('start')
 def start():
     hookenv.status_set('maintenance', 'Starting Ghost')
-    host.service_restart('ghost')
+    host.service_start('ghost')
     host.service_restart('nginx')
     hookenv.status_set('active', 'ready')
 
@@ -66,20 +69,30 @@ def start():
 def setup_mysql(mysql):
     """ Mysql is available, update Ghost db configuration
     """
+    host.service_stop('ghost')
+
     hookenv.status_set('maintenance', 'Connecting Ghost to MySQL!')
     target = os.path.join(node_dist_dir(), 'dbconfig.js')
     render(source='mysql.js.template',
            target=target,
            context=dict(db=mysql))
-    host.service_restart('ghost')
+
+    host.service_start('ghost')
     host.service_restart('nginx')
-    hookenv.status_state('active', 'ready')
+    hookenv.status_set('active', 'ready')
 
 
 @when('nginx.available', 'nodejs.installed')
 def app_install():
     """ Performs application installation
+
+    This method becomes available once Node.js and NGINX have been
+    installed via the install hook and their states are then made
+    available (nginx.available, nodejs.installed) which we react on.
     """
+
+    # Make sure this state doesn't re-trigger an install loop
+    # TODO: Maybe I'm doing it wrong?
     remove_state('nodejs.installed')
 
     # Update application

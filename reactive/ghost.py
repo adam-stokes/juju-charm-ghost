@@ -88,6 +88,7 @@ def install():
 def setup_mysql(mysql):
     """ Mysql is available, update Ghost db configuration
     """
+    hookenv.status_set('maintenance', 'Ghost is connecting to MySQL!')
     host.service_stop('ghost')
     target = os.path.join(node_dist_dir(), 'dbconfig.js')
     render(source='mysql.js.template',
@@ -96,7 +97,7 @@ def setup_mysql(mysql):
 
     host.service_start('ghost')
     host.service_restart('nginx')
-    hookenv.status_set('active', 'Ghost is connected to MySQL!')
+    hookenv.status_set('active', 'Ready')
 
 
 @when('nginx.available', 'website.available')

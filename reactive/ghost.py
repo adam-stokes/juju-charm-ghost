@@ -114,3 +114,8 @@ def app_install():
            target='/etc/init/ghost.conf',
            context=ctx,
            perms=0o644)
+
+
+@when('nginx.available', 'website.available')
+def configure_website(website):
+    website.configure(port=80)

@@ -8,10 +8,6 @@ more time blogging.
 This is an updated charm originally written by Jeff Pihach and ported over to
 the charms.reactive framework and updated for Trusty and the latest Ghost release.
 
-## TODO:
-
-* Load balancing
-
 # Quick Start
 
 After you have a Juju cloud environment running:
@@ -104,6 +100,13 @@ You'll then need to relate the Ghost blog service to the MySQL service.
 
 The charm will then handle setting up all configuration options necessary to use
 the MySQL database instead of the internal SQLite database.
+
+# Load Balancing
+
+    $ juju deploy haproxy
+    $ juju expose haproxy
+    $ juju unexpose ghost
+    $ juju add-relation ghost haproxy
 
 # Contributing
 

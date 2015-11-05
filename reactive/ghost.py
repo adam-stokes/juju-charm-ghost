@@ -2,6 +2,7 @@ import os
 from charms.reactive import (
     hook,
     when,
+    only_once,
     is_state
 )
 
@@ -46,7 +47,8 @@ def config_changed():
 
 
 # REACTORS --------------------------------------------------------------------
-@when('nginx.available', 'nodejs.installed')
+@when('nginx.available', 'nodejs.available')
+@only_once
 def install():
     """ Performs application installation
 

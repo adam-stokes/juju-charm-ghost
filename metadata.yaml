@@ -2,7 +2,7 @@ name: ghost
 summary: |
   Ghost is a simple, powerful publishing platform.
 maintainers: ['Adam Stokes <adam.stokes@ubuntu.com>']
-categories: ['nodejs', 'javascript', 'blog']
+tags: ['nodejs', 'javascript', 'blog']
 requires:
   database:
     interface: mysql

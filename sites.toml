@@ -1,5 +1,0 @@
-[default]
-# Only a single vhost, dont define servername
-"server_name" = "_"
-"interface" = "reverseproxy"
-"app-path" = "/srv/app"

@@ -13,6 +13,9 @@ from charmhelpers.core.templating import render
 # ./lib/nodejs.py
 from nodejs import node_dist_dir, npm
 
+# ./lib/nginxlib
+import nginxlib
+
 # ./lib/ghostlib.py
 import ghostlib
 
@@ -53,6 +56,7 @@ def config_changed():
     hookenv.log('Ghost: config-changed, restarting services', 'info')
     ghostlib.restart_ghost()
     host.service_restart('nginx')
+    hookenv.status_set('active', 'Ready')
 
 
 # REACTORS --------------------------------------------------------------------
@@ -67,6 +71,9 @@ def install_app():
     """
 
     hookenv.log('Installing Ghost', 'info')
+
+    # Configure NGINX vhost
+    nginxlib.configure_site('default', 'vhost.conf')
 
     # Update application
     ghostlib.download_archive()
@@ -83,11 +90,6 @@ def install_app():
            target=target,
            context=ctx)
 
-    # Render upstart job
-    # render(source='ghost-upstart.conf',
-    #        target='/etc/init/ghost.conf',
-    #        context=ctx,
-    #        perms=0o644)
     ghostlib.start_ghost()
     host.service_restart('nginx')
 
@@ -111,5 +113,4 @@ def setup_mysql(mysql):
 
 @when('nginx.available', 'website.available')
 def configure_website(website):
-    hookenv.status_set('maintenance', 'Connecting to an HTTP interface')
     website.configure(port=80)

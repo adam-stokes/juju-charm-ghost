@@ -1,5 +1,5 @@
 import sys
-from os import path, makedirs
+from os import path, makedirs, chdir
 from shutil import rmtree
 from charmhelpers.core import hookenv
 from hashlib import sha256
@@ -38,3 +38,19 @@ def download_archive():
     ))
     hookenv.log("Extracting Ghost: {}".format(cmd))
     shell(cmd)
+
+
+def start_ghost():
+    chdir(node_dist_dir())
+    shell('env NODE_ENV=production forever '
+          '-l /var/log/ghost.log start index.js')
+
+
+def stop_ghost():
+    chdir(node_dist_dir())
+    shell('env NODE_ENV=production forever stop index.js')
+
+
+def restart_ghost():
+    chdir(node_dist_dir())
+    shell('env NODE_ENV=production forever restart index.js')

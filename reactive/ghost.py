@@ -14,7 +14,7 @@ from charmhelpers.core.templating import render
 from nodejs import node_dist_dir, npm
 
 # ./lib/ghostlib.py
-from ghostlib import download_archive
+import ghostlib
 
 config = hookenv.config()
 
@@ -36,24 +36,22 @@ def config_changed():
         hookenv.status_set('active', 'ready')
 
     # Update config on any config items altered
-    if any(config.changed(k) for k in config.keys()):
-        host.service_stop('ghost')
-        target = os.path.join(node_dist_dir(), 'config.js')
-        render(source='config.js.template',
-               target=target,
-               context=config)
-        host.service_restart('ghost')
+    # if any(config.changed(k) for k in config.keys()):
+    target = os.path.join(node_dist_dir(), 'config.js')
+    render(source='config.js.template',
+           target=target,
+           context=config)
 
     if config.changed('port'):
-        host.service_stop('ghost')
         hookenv.log('Changing ports: {} -> {}'.format(
             config.previous('port'),
             config['port']
         ))
         hookenv.close_port(config.previous('port'))
         hookenv.open_port(config['port'])
-        host.service_restart('ghost')
 
+    hookenv.log('Ghost: config-changed, restarting services', 'info')
+    ghostlib.restart_ghost()
     host.service_restart('nginx')
 
 
@@ -71,8 +69,9 @@ def install_app():
     hookenv.log('Installing Ghost', 'info')
 
     # Update application
-    download_archive()
+    ghostlib.download_archive()
     npm('install --production')
+    npm('install forever -g')
 
     ctx = {
         'dist_dir': node_dist_dir()
@@ -85,13 +84,14 @@ def install_app():
            context=ctx)
 
     # Render upstart job
-    render(source='ghost-upstart.conf',
-           target='/etc/init/ghost.conf',
-           context=ctx,
-           perms=0o644)
-    hookenv.status_set('active', 'Ghost is installed, start blogging!')
-    host.service_start('ghost')
+    # render(source='ghost-upstart.conf',
+    #        target='/etc/init/ghost.conf',
+    #        context=ctx,
+    #        perms=0o644)
+    ghostlib.start_ghost()
     host.service_restart('nginx')
+
+    hookenv.status_set('active', 'Ghost is installed, start blogging!')
 
 
 @when('nginx.available', 'database.available')
@@ -99,17 +99,17 @@ def setup_mysql(mysql):
     """ Mysql is available, update Ghost db configuration
     """
     hookenv.status_set('maintenance', 'Ghost is connecting to MySQL!')
-    host.service_stop('ghost')
     target = os.path.join(node_dist_dir(), 'dbconfig.js')
     render(source='mysql.js.template',
            target=target,
            context=dict(db=mysql))
 
-    host.service_start('ghost')
+    ghostlib.restart_ghost()
     host.service_restart('nginx')
     hookenv.status_set('active', 'Ready')
 
 
 @when('nginx.available', 'website.available')
 def configure_website(website):
+    hookenv.status_set('maintenance', 'Connecting to an HTTP interface')
     website.configure(port=80)

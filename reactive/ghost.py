@@ -29,11 +29,12 @@ def config_changed():
     if not is_state('nginx.available') or not is_state('nodejs.available'):
         return
 
-    if config.changed('node-version') and config['node-version'] != "0.10":
+    if config.changed('node-version') and \
+       config['node-version'] not in ["0.10", "4.x"]:
         hookenv.status_set('blocked',
-                           'Ghost has only been tested on Node.js v0.10, '
-                           'please update your node-version config '
-                           'to "node-version=0.10".')
+                           'Attempting to run Ghost on an unsupported Node.js '
+                           'version please update your node-version config '
+                           'to "node-version=4.x".')
         sys.exit(0)
     else:
         hookenv.status_set('active', 'ready')

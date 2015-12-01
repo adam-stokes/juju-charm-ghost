@@ -16,8 +16,8 @@ from nodejs import node_dist_dir, npm
 # ./lib/nginxlib
 import nginxlib
 
-# ./lib/ghostlib.py
-import ghostlib
+# ./lib/charms/ghost.py
+from charms import ghost
 
 config = hookenv.config()
 
@@ -55,7 +55,7 @@ def config_changed():
         hookenv.open_port(config['port'])
 
     hookenv.log('Ghost: config-changed, restarting services', 'info')
-    ghostlib.restart_ghost()
+    ghost.restart_ghost()
     host.service_restart('nginx')
     hookenv.status_set('active', 'Ready')
 
@@ -77,7 +77,7 @@ def install_app():
     nginxlib.configure_site('default', 'vhost.conf')
 
     # Update application
-    ghostlib.download_archive()
+    ghost.download_archive()
     npm('install --production')
     npm('install forever -g')
 
@@ -91,7 +91,7 @@ def install_app():
            target=target,
            context=ctx)
 
-    ghostlib.start_ghost()
+    ghost.start_ghost()
     host.service_restart('nginx')
 
     hookenv.status_set('active', 'Ghost is installed, start blogging!')
@@ -107,7 +107,7 @@ def setup_mysql(mysql):
            target=target,
            context=dict(db=mysql))
 
-    ghostlib.restart_ghost()
+    ghost.restart_ghost()
     host.service_restart('nginx')
     hookenv.status_set('active', 'Ready')
 

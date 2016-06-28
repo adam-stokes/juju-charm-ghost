@@ -1,1 +1,2 @@
 includes: ['layer:basic', 'layer:nodejs', 'layer:nginx', 'interface:mysql']
+repo: https://github.com/battlemidget/charm-layer-ghost

@@ -1,19 +1,16 @@
-import os
-import sys
 from charms.reactive import (
-    hook,
     when,
-    only_once,
-    is_state
+    when_not,
+    is_state,
+    set_state,
 )
 
 from charmhelpers.core import hookenv, host
-from charmhelpers.core.templating import render
 
-# ./lib/nodejs.py
-from nodejs import node_dist_dir, npm
+# from nodejs layer
+from charms.layer.nodejs import npm
 
-# ./lib/nginxlib
+# from nginx layer
 import nginxlib
 
 # ./lib/charms/ghost.py
@@ -22,96 +19,56 @@ from charms import ghost
 config = hookenv.config()
 
 
-# HOOKS -----------------------------------------------------------------------
-@hook('config-changed')
-def config_changed():
+@when('nginx.available')
+@when_not('ghost.nginx.configured')
+def configure_nginx():
+    """
+    Once nginx is ready, setup our vhost entry.
+    """
+    nginxlib.configure_site('default', 'vhost.conf')
+    set_state('ghost.nginx.configured')
 
-    if not is_state('nginx.available') or not is_state('nodejs.available'):
+
+@when('nodejs.available')
+@when_not('ghost.forever.installed')
+def install_forever():
+    """
+    Once NodeJS is ready, install the NPM forever package.
+    """
+    npm('install', 'forever', '-g')
+    set_state('ghost.forever.installed')
+
+
+@when('ghost.nginx.configured', 'ghost.forever.installed')
+def check_app_config():
+    """
+    Check the Ghost application config and possibly update and restart it.
+    """
+    db_changed = ghost.check_db_changed()
+
+    if not (is_state('config.changed') or db_changed):
         return
 
-    if config.changed('node-version') and \
-       config['node-version'] not in ["0.10", "4.x"]:
-        hookenv.status_set('blocked',
-                           'Attempting to run Ghost on an unsupported Node.js '
-                           'version please update your node-version config '
-                           'to "node-version=4.x".')
-        sys.exit(0)
-    else:
-        hookenv.status_set('active', 'ready')
-
-    # Update config on any config items altered
-    # if any(config.changed(k) for k in config.keys()):
-    target = os.path.join(node_dist_dir(), 'config.js')
-    render(source='config.js.template',
-           target=target,
-           context=config)
-
-    if config.changed('port'):
-        hookenv.log('Changing ports: {} -> {}'.format(
-            config.previous('port'),
-            config['port']
-        ))
-        hookenv.close_port(config.previous('port'))
-        hookenv.open_port(config['port'])
-
-    hookenv.log('Ghost: config-changed, restarting services', 'info')
-    ghost.restart_ghost()
-    host.service_restart('nginx')
-    hookenv.status_set('active', 'Ready')
-
-
-# REACTORS --------------------------------------------------------------------
-@when('nginx.available', 'nodejs.available')
-@only_once
-def install_app():
-    """ Performs application installation
-
-    This method becomes available once Node.js and NGINX have been
-    installed via the install hook and their states are then made
-    available (nginx.available, nodejs.installed) which we react on.
-    """
-
-    hookenv.log('Installing Ghost', 'info')
-
-    # Configure NGINX vhost
-    nginxlib.configure_site('default', 'vhost.conf')
+    hookenv.status_set('maintenance', 'updating configuration')
 
     # Update application
-    ghost.download_archive()
-    npm('install --production')
-    npm('install forever -g')
+    if config.changed('release'):
+        ghost.update_ghost()
 
-    ctx = {
-        'dist_dir': node_dist_dir()
-    }
+    # Update general config
+    if is_state('config.changed'):
+        ghost.update_general_config()
 
-    # Render default database
-    target = os.path.join(node_dist_dir(), 'dbconfig.js')
-    render(source='sqlite.js.template',
-           target=target,
-           context=ctx)
-
-    ghost.start_ghost()
-    host.service_restart('nginx')
-
-    hookenv.status_set('active', 'Ghost is installed, start blogging!')
-
-
-@when('nginx.available', 'database.available')
-def setup_mysql(mysql):
-    """ Mysql is available, update Ghost db configuration
-    """
-    hookenv.status_set('maintenance', 'Ghost is connecting to MySQL!')
-    target = os.path.join(node_dist_dir(), 'dbconfig.js')
-    render(source='mysql.js.template',
-           target=target,
-           context=dict(db=mysql))
+    # Update database config
+    if db_changed:
+        ghost.update_db_config()
 
     ghost.restart_ghost()
+    set_state('ghost.running')
     host.service_restart('nginx')
-    hookenv.status_set('active', 'Ready')
+    hookenv.status_set('active', 'ready')
 
 
-@when('nginx.available', 'website.available')
+@when('ghost.running', 'website.available')
 def configure_website(website):
-    website.configure(port=80)
+    website.configure(port=config['port'])

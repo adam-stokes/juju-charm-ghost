@@ -7,10 +7,6 @@ options:
     type: string
     default: "a3638e391975d7b91e75d12787e5b7486e87bf2d7f866d8ebc39670f9bf7c4f2"
     description: "Ghost sha256 checksum"
-  node-version:
-    type: string
-    default: "4.x"
-    description: Supported Node.js version for Ghost
   url:
     description: The URL to use when providing links to the site.
     type: string

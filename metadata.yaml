@@ -4,6 +4,9 @@ summary: |
 description: |
   Ghost is a simple, powerful publishing platform.
 maintainers: ['Adam Stokes <adam.stokes@ubuntu.com>']
+series:
+  - xenial
+  - trusty
 tags: ['nodejs', 'javascript', 'blog']
 requires:
   database:

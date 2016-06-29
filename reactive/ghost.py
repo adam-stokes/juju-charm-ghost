@@ -52,7 +52,7 @@ def check_app_config():
     hookenv.status_set('maintenance', 'updating configuration')
 
     # Update application
-    if config.changed('release'):
+    if config.changed('release') or config.changed('checksum'):
         ghost.update_ghost()
 
     # Update general config

@@ -44,28 +44,26 @@ def check_app_config():
     """
     Check the Ghost application config and possibly update and restart it.
     """
+    cfg_changed = is_state('config.changed')
     db_changed = ghost.check_db_changed()
+    if cfg_changed or db_changed:
+        hookenv.status_set('maintenance', 'updating configuration')
 
-    if not (is_state('config.changed') or db_changed):
-        return
+        # Update application
+        if config.changed('release') or config.changed('checksum'):
+            ghost.update_ghost()
 
-    hookenv.status_set('maintenance', 'updating configuration')
+        # Update general config
+        if cfg_changed:
+            ghost.update_general_config()
 
-    # Update application
-    if config.changed('release') or config.changed('checksum'):
-        ghost.update_ghost()
+        # Update database config
+        if db_changed:
+            ghost.update_db_config()
 
-    # Update general config
-    if is_state('config.changed'):
-        ghost.update_general_config()
-
-    # Update database config
-    if db_changed:
-        ghost.update_db_config()
-
-    ghost.restart_ghost()
-    set_state('ghost.running')
-    host.service_restart('nginx')
+        ghost.restart_ghost()
+        set_state('ghost.running')
+        host.service_restart('nginx')
     hookenv.status_set('active', 'ready')
 
 

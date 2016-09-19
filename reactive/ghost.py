@@ -7,14 +7,8 @@ from charms.reactive import (
 
 from charmhelpers.core import hookenv, host
 
-# from nodejs layer
+from charms.layer import ghost, nginx
 from charms.layer.nodejs import npm
-
-# from nginx layer
-import nginxlib
-
-# ./lib/charms/ghost.py
-from charms import ghost
 
 config = hookenv.config()
 
@@ -25,7 +19,7 @@ def configure_nginx():
     """
     Once nginx is ready, setup our vhost entry.
     """
-    nginxlib.configure_site('default', 'vhost.conf')
+    nginx.configure_site('default', 'vhost.conf')
     set_state('ghost.nginx.configured')
 
 

@@ -6,7 +6,7 @@ elegant, and designed so that you can spend less time making your blog work and
 more time blogging.
 
 This is an updated charm originally written by Jeff Pihach and ported over to
-the charms.reactive framework and updated for Trusty and the latest Ghost release.
+the charms.reactive framework.
 
 # Quick Start
 

@@ -1,0 +1,29 @@
+#!/bin/bash -ex
+
+unitAddress()
+{
+    py_script="
+import sys
+import yaml
+
+status_yaml=yaml.load(sys.stdin)
+print(status_yaml['applications']['ghost']['units']['ghost/0']['public-address'])
+"
+    juju-2.0 status ghost/0 --format yaml | env python3 -c "$py_script"
+}
+
+
+grep -q 'DISTRIB_CODENAME=xenial' /etc/lsb-release || (printf "Wrong series\n" && exit 0)
+juju version|grep -qP '^2\.\d' || (printf "Wrong juju version, needs to be 2.0 or higher\n" && exit 0)
+
+dpkg -s conjure-up
+if [ $? -ne 0 ]; then
+    sudo add-apt-repository -y ppa:juju/stable
+    sudo add-apt-repository -y ppa:conjure-up/daily-git
+    sudo apt-get update
+    sudo apt-get install -y conjure-up curl
+fi
+
+conjure-up -d ./ghost-spell localhost || exit 1
+
+curl --silent $(unitAddress)|grep -qP 'Welcome\sto\sGhost' || exit 1

@@ -1,0 +1,5 @@
+series: xenial
+services:
+  ghost:
+    charm: cs:ghost-6
+    num_units: 1

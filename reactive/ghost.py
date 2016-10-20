@@ -43,6 +43,9 @@ def check_app_config():
     if cfg_changed or db_changed:
         hookenv.status_set('maintenance', 'updating configuration')
 
+        # Set Ghost application version
+        hookenv.application_version_set(config['release'])
+
         # Update application
         if config.changed('release') or config.changed('checksum'):
             ghost.update_ghost()

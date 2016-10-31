@@ -101,7 +101,7 @@ def start_ghost():
     if not ghost_running():
         with host.chdir(node_dist_dir()):
             check_call(['env', 'NODE_ENV=production', 'forever',
-                        '-l', '/var/log/ghost.log', 'start', 'index.js'])
+                        '-l', '/var/log/ghost.log', '-a', 'start', 'index.js'])
 
 
 def stop_ghost():
@@ -115,4 +115,4 @@ def restart_ghost():
     cmd = 'restart' if ghost_running() else 'start'
     with host.chdir(node_dist_dir()):
         check_call(['env', 'NODE_ENV=production', 'forever',
-                    '-l', '/var/log/ghost.log', cmd, 'index.js'])
+                    '-l', '/var/log/ghost.log', '-a', cmd, 'index.js'])

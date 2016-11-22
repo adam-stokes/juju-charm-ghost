@@ -1,0 +1,6 @@
+sources:
+  - ppa:juju/stable
+  - ppa:conjure-up/next
+python_packages:
+  - conjure-up
+  - curl

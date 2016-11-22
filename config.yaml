@@ -1,11 +1,11 @@
 options:
   release:
     type: string
-    default: "0.11.2"
+    default: "0.11.3"
     description: "Released version of Ghost"
   checksum:
     type: string
-    default: "8820f5991a5b6a4afc51f488d2f16294b6b6738bd68cfd99c05530ae66776a04"
+    default: "09cd9767a9f71fd142983fd12bb511839467ece0f24137160c9aef8b3f29c900"
     description: "Ghost sha256 checksum"
   url:
     description: The URL to use when providing links to the site.

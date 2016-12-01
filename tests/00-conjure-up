@@ -16,6 +16,6 @@ print(status_yaml['applications']['ghost']['units']['ghost/0']['public-address']
 grep -q 'DISTRIB_CODENAME=xenial' /etc/lsb-release || (printf "Wrong series\n" && exit 0)
 juju version|grep -qP '^2\.\d' || (printf "Wrong juju version, needs to be 2.0 or higher\n" && exit 0)
 
-conjure-up -d ./ghost-spell localhost || exit 1
+conjure-up -d ./tests/ghost-spell localhost || exit 1
 
 curl --silent $(unitAddress)|grep -qP 'Welcome\sto\sGhost' || exit 1

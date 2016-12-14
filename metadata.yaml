@@ -11,3 +11,8 @@ tags: ['nodejs', 'javascript', 'blog']
 requires:
   database:
     interface: mysql
+resources:
+  stable:
+    type: file
+    filename: ghost.zip
+    description: "Ghost Stable release source"

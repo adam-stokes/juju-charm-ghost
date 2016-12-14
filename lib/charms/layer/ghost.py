@@ -3,6 +3,7 @@ from os import path, listdir, unlink
 from shutil import rmtree
 from charmhelpers.core import hookenv
 from charmhelpers.core import host
+from charmhelpers.core import unitdata
 from charmhelpers.core.templating import render
 from subprocess import call, check_call, check_output
 from charms.reactive.relations import RelationBase
@@ -10,23 +11,14 @@ from charms.reactive.helpers import data_changed
 
 # node-layer
 from charms.layer.nodejs import node_dist_dir, npm
+kv = unitdata.kv()
 
 
 def download_archive():
     check_call(['apt-get', 'install', '-qy', 'unzip'])
     config = hookenv.config()
-    call(['rm', '/tmp/ghost.zip'])
-    cmd = ('wget', '-q', '-O', '/tmp/ghost.zip',
-           'https://ghost.org/zip/ghost-{}.zip'.format(config['release']))
-    hookenv.log("Downloading Ghost from: {}".format(' '.join(cmd)))
-    check_call(cmd)
-
-    if host.file_hash('/tmp/ghost.zip', 'sha256') != config['checksum']:
-        hookenv.status_set(
-            'blocked',
-            'downloaded ghost checksums do not match, '
-            'possible corrupt file!')
-        sys.exit(0)
+    ghost_source = hookenv.resource_get('stable')
+    kv.set('checksum', host.file_hash(ghost_source, 'sha256'))
 
     # delete the app dir contents (but not the dir itself)
     dist_dir = node_dist_dir()
@@ -36,7 +28,7 @@ def download_archive():
         elif path.isdir(entry):
             rmtree(entry)
 
-    cmd = ('unzip', '-uo', '/tmp/ghost.zip', '-d', dist_dir)
+    cmd = ('unzip', '-uo', ghost_source, '-d', dist_dir)
     hookenv.log("Extracting Ghost: {}".format(' '.join(cmd)))
     check_call(cmd)
 

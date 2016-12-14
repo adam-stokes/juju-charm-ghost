@@ -1,8 +1,4 @@
 options:
-  release:
-    type: string
-    default: "0.11.3"
-    description: "Released version of Ghost"
   checksum:
     type: string
     default: "09cd9767a9f71fd142983fd12bb511839467ece0f24137160c9aef8b3f29c900"

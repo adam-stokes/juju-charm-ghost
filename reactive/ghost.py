@@ -1,3 +1,4 @@
+import os.path as path
 from charms.reactive import (
     when,
     when_not,
@@ -8,7 +9,7 @@ from charms.reactive import (
 from charmhelpers.core import hookenv, host
 
 from charms.layer import ghost, nginx
-from charms.layer.nodejs import npm
+from charms.layer.nodejs import npm, node_dist_dir
 
 config = hookenv.config()
 
@@ -43,11 +44,10 @@ def check_app_config():
     if cfg_changed or db_changed:
         hookenv.status_set('maintenance', 'updating configuration')
 
-        # Set Ghost application version
-        hookenv.application_version_set(config['release'])
-
         # Update application
-        if config.changed('release') or config.changed('checksum'):
+        current_ghost_source_checksum = host.file_hash(
+            hookenv.resource_get('stable'), 'sha256')
+        if current_ghost_source_checksum != config.get('checksum', 0):
             ghost.update_ghost()
 
         # Update general config
@@ -61,6 +61,13 @@ def check_app_config():
         ghost.restart_ghost()
         set_state('ghost.running')
         host.service_restart('nginx')
+
+        with open(path.join(node_dist_dir, 'package.json'), 'r') as fp:
+            package_json = json.loads(fp.read())
+
+            # Set Ghost application version
+            hookenv.application_version_set(package_json['version'])
+
     hookenv.status_set('active', 'ready')
 
 

@@ -1,5 +1,0 @@
-series: xenial
-services:
-  ghost:
-    charm: cs:~adam-stokes/ghost
-    num_units: 1

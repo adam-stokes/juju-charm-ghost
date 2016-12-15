@@ -12,7 +12,7 @@ requires:
   database:
     interface: mysql
 resources:
-  stable:
+  ghost-stable:
     type: file
     filename: ghost.zip
     description: "Ghost Stable release source"

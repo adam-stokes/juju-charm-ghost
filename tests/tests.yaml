@@ -1,6 +1,7 @@
 sources:
   - ppa:juju/stable
-  - ppa:conjure-up/next
+  - ppa:stub/juju
 packages:
-  - conjure-up
+  - juju-wait
   - curl
+  - python3-yaml

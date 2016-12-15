@@ -17,7 +17,7 @@ kv = unitdata.kv()
 def download_archive():
     check_call(['apt-get', 'install', '-qy', 'unzip'])
     config = hookenv.config()
-    ghost_source = hookenv.resource_get('stable')
+    ghost_source = hookenv.resource_get('ghost-stable')
     kv.set('checksum', host.file_hash(ghost_source, 'sha256'))
 
     # delete the app dir contents (but not the dir itself)

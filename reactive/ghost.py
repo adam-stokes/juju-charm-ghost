@@ -1,4 +1,6 @@
 import os.path as path
+import json
+
 from charms.reactive import (
     when,
     when_not,
@@ -45,10 +47,7 @@ def check_app_config():
         hookenv.status_set('maintenance', 'updating configuration')
 
         # Update application
-        current_ghost_source_checksum = host.file_hash(
-            hookenv.resource_get('stable'), 'sha256')
-        if current_ghost_source_checksum != config.get('checksum', 0):
-            ghost.update_ghost()
+        ghost.update_ghost()
 
         # Update general config
         if cfg_changed:
@@ -62,7 +61,7 @@ def check_app_config():
         set_state('ghost.running')
         host.service_restart('nginx')
 
-        with open(path.join(node_dist_dir, 'package.json'), 'r') as fp:
+        with open(path.join(node_dist_dir(), 'package.json'), 'r') as fp:
             package_json = json.loads(fp.read())
 
             # Set Ghost application version

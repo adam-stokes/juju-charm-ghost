@@ -115,9 +115,9 @@ the MySQL database instead of the internal SQLite database.
 This charm is ported over from the original excellent charm @
 [ghost-charm repository](https://github.com/hatched/ghost-charm)
 
-## Current charm updated for Trusty and using charms.reactive
+## Current charm updated for latest LTS and using charms.reactive
 
-[juju-layer-ghost](https://github.com/battlemidget/juju-layer-ghost)
+[juju-charm-ghost](https://github.com/battlemidget/juju-charm-ghost)
 
 
 # Bug Reports
@@ -127,7 +127,7 @@ Please file bugs for the Ghost blogging engine in the
 ghost-charm repository.
 
 If you have found a bug with the ghost-charm itself they can be filed in the
-[juju-layer-ghost repository](https://github.com/battlemidget/juju-layer-ghost).
+[juju-charm-ghost repository](https://github.com/battlemidget/juju-charm-ghost).
 Please include exact steps to reproduce the issue and be as detailed as
 possible, including what version of Ubuntu you're running on, the version of
 this charm you have deployed, the cloud your environment is running on, any

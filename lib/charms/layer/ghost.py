@@ -18,7 +18,12 @@ def download_archive():
     check_call(['apt-get', 'install', '-qy', 'unzip'])
     config = hookenv.config()
     ghost_source = hookenv.resource_get('ghost-stable')
-    kv.set('checksum', host.file_hash(ghost_source, 'sha256'))
+    ghost_source_checksum = host.file_hash(ghost_source, 'sha256')
+    if config.get('checksum', 0) == ghost_source_checksum:
+        hookenv.log("Checksums match no need to extract source archive.")
+        return
+
+    kv.set('checksum', ghost_source_checksum)
 
     # delete the app dir contents (but not the dir itself)
     dist_dir = node_dist_dir()

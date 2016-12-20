@@ -7,12 +7,26 @@ import sys
 import yaml
 
 status_yaml=yaml.load(sys.stdin)
-print(status_yaml['applications']['ghost']['units']['ghost/0']['public-address'])
+unit = status_yaml['applications'][$1]['units'][0]
+print(unit['public-address'])
 "
-    juju status ghost/0 --format yaml | env python3 -c "$py_script"
+    juju status $1 --format yaml | env python3 -c "$py_script"
 }
 
-juju deploy .
+juju deploy cs:ghost-16
 juju wait
 
-curl --silent $(unitAddress)|grep -qP 'Welcome\sto\sGhost' || exit 1
+curl --silent $(unitAddress "ghost")|grep -qP 'Welcome\sto\sGhost' || exit 1
+
+juju deploy mysql
+juju deploy haproxy
+juju add-relation mysql ghost
+juju add-relation haproxy ghost
+juju wait
+
+curl --silent $(unitAddress "haproxy")|grep -qP 'Welcome\sto\sGhost' || exit 1
+
+juju config ghost port=8888
+juju wait
+
+curl --silent $(unitAddress "haproxy")|grep -qP 'Welcome\sto\sGhost' || exit 1

@@ -1,8 +1,4 @@
 options:
-  checksum:
-    type: string
-    default: "09cd9767a9f71fd142983fd12bb511839467ece0f24137160c9aef8b3f29c900"
-    description: "Ghost sha256 checksum"
   url:
     description: The URL to use when providing links to the site.
     type: string

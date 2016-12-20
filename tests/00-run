@@ -7,17 +7,20 @@ import sys
 import yaml
 
 status_yaml=yaml.load(sys.stdin)
-unit = status_yaml['applications'][$1]['units'][0]
-print(unit['public-address'])
+unit = status_yaml['applications'][$1]['units']
+units = list(unit.keys())
+print(unit[units[0]]['public-address'])
 "
     juju status $1 --format yaml | env python3 -c "$py_script"
 }
 
-juju deploy cs:ghost-16
+echo "### Deploying Ghost and testing accessibility"
+juju deploy cs:ghost-17
 juju wait
 
 curl --silent $(unitAddress "ghost")|grep -qP 'Welcome\sto\sGhost' || exit 1
 
+echo "### Deploying mysql and haproxy, testing accessibility after relation"
 juju deploy mysql
 juju deploy haproxy
 juju add-relation mysql ghost
@@ -26,6 +29,7 @@ juju wait
 
 curl --silent $(unitAddress "haproxy")|grep -qP 'Welcome\sto\sGhost' || exit 1
 
+echo "### Configuring a new internal port, testing accessibilty"
 juju config ghost port=8888
 juju wait
 

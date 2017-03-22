@@ -1,11 +1,10 @@
-import sys
 from os import path, listdir, unlink
 from shutil import rmtree
 from charmhelpers.core import hookenv
 from charmhelpers.core import host
 from charmhelpers.core import unitdata
 from charmhelpers.core.templating import render
-from subprocess import call, check_call, check_output
+from subprocess import check_call, check_output, CalledProcessError
 from charms.reactive.relations import RelationBase
 from charms.reactive.helpers import data_changed
 
@@ -14,16 +13,20 @@ from charms.layer.nodejs import node_dist_dir, npm
 kv = unitdata.kv()
 
 
+class ResourceFailure(Exception):
+    pass
+
+
 def download_archive():
     check_call(['apt-get', 'install', '-qy', 'unzip'])
     config = hookenv.config()
     ghost_source = hookenv.resource_get('ghost-stable')
+    if not ghost_source:
+        raise ResourceFailure()
     ghost_source_checksum = host.file_hash(ghost_source, 'sha256')
     if config.get('checksum', 0) == ghost_source_checksum:
         hookenv.log("Checksums match no need to extract source archive.")
         return
-
-    kv.set('checksum', ghost_source_checksum)
 
     # delete the app dir contents (but not the dir itself)
     dist_dir = node_dist_dir()
@@ -35,7 +38,12 @@ def download_archive():
 
     cmd = ('unzip', '-uo', ghost_source, '-d', dist_dir)
     hookenv.log("Extracting Ghost: {}".format(' '.join(cmd)))
-    check_call(cmd)
+    try:
+        check_call(cmd)
+    except CalledProcessError:
+        raise ResourceFailure()
+
+    kv.set('checksum', ghost_source_checksum)
 
 
 def check_db_changed():

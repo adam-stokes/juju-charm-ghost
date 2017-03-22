@@ -43,11 +43,16 @@ def check_app_config():
     """
     cfg_changed = is_state('config.changed')
     db_changed = ghost.check_db_changed()
-    if cfg_changed or db_changed:
+    if cfg_changed or db_changed or not is_state('ghost.running'):
         hookenv.status_set('maintenance', 'updating configuration')
 
-        # Update application
-        ghost.update_ghost()
+        try:
+            # Update application
+            ghost.update_ghost()
+        except ghost.ResourceFailure:
+            hookenv.status_set('blocked',
+                               'unable to get ghost-stable resource')
+            return
 
         # Update general config
         if cfg_changed:
